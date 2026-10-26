@@ -34,12 +34,19 @@ export function parseEventDetail(html: string, eventId: string): EventDetail {
       url: absoluteUrl(href)
     });
   });
-  const descriptionText = cleanText(
-    $(".gb_events_info_table table tr")
-      .toArray()
-      .map((row) => $(row).find("td").eq(1).text())
-      .find((text) => text.includes("受付期間") || text.includes("チケット")) ?? ""
-  );
+  const description = $(".gb_events_info_table table tr")
+    .toArray()
+    .map((row) => $(row).find("td").eq(1))
+    .find((cell) => cell.text().includes("受付期間") || cell.text().includes("チケット"))
+    ?.clone();
+  description?.find("br").replaceWith(" ");
+  description?.find("a[href]").each((_, node) => {
+    const link = $(node);
+    const label = cleanText(link.text());
+    const url = absoluteUrl(link.attr("href") ?? "");
+    link.text(` ${label === url ? url : `${label} ${url}`} `);
+  });
+  const descriptionText = cleanText(description?.text() ?? "");
 
   return EventDetailSchema.parse({
     eventId,

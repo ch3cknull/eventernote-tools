@@ -24,4 +24,17 @@ describe("planning context helpers", () => {
     expect(summary.ticketUrls).toContain("https://eplus.jp/ras-togetoge/");
     expect(summary.summary).toContain("11,000円");
   });
+
+  it("keeps eplus customer support links as sources without treating them as ticket links", () => {
+    const supportUrl = "https://support-qa.eplus.jp/hc/ja/";
+    const ticketUrl = "https://eplus.jp/example/";
+    const summary = summarizeResearch({
+      eventId: "496259",
+      descriptionText: `チケットのお問い合わせ ${supportUrl}`,
+      relatedLinks: [{ url: supportUrl }, { url: ticketUrl }],
+    });
+
+    expect(summary.sourceUrls).toEqual([supportUrl, ticketUrl]);
+    expect(summary.ticketUrls).toEqual([ticketUrl]);
+  });
 });

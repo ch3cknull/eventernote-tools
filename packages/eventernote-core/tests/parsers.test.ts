@@ -6,6 +6,7 @@ import { parseEventCards, parseTotalCount } from "../src/parsers/event-card.js";
 import { parseEventDetail } from "../src/parsers/event-detail.js";
 import { parsePlaceDetail } from "../src/parsers/place-detail.js";
 import { parsePlaceSearch } from "../src/parsers/place-search.js";
+import { summarizeResearch } from "../src/services/context.js";
 
 const fixture = (name: string) => readFileSync(join(import.meta.dirname, "fixtures", name), "utf8");
 
@@ -81,5 +82,33 @@ describe("detail parsers", () => {
       tips: "青森駅から徒歩7分 青森空港からタクシーで約30分・バスで約35分"
     });
     expect(detail.events.map((event) => event.eventId)).toContain("469944");
+  });
+
+  it("keeps description links separate from prose and preserves ticket anchor targets", () => {
+    const html = fixture("event-detail-ticket-links.html").replace(
+      />\s+</g,
+      "><",
+    );
+    const detail = parseEventDetail(html, "496259");
+
+    expect(detail.descriptionText).toContain(
+      "https://bang-dream.com/discographies/4215/ ※チケット",
+    );
+    expect(detail.descriptionText).toContain(
+      "申込はこちら https://eplus.jp/example/",
+    );
+    expect(detail.descriptionText).toContain(
+      "https://tiget.net/events/12345 ※受付終了",
+    );
+    expect(detail.relatedLinks).toEqual([
+      {
+        label: "イベント公式サイト",
+        url: "https://bang-dream.com/events/example/",
+      },
+    ]);
+    expect(summarizeResearch(detail).ticketUrls).toEqual([
+      "https://eplus.jp/example/",
+      "https://tiget.net/events/12345",
+    ]);
   });
 });

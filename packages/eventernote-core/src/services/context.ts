@@ -41,8 +41,10 @@ export function summarizeResearch(event: {
 }) {
   const text = event.descriptionText ?? "";
   const inlineUrls = Array.from(text.matchAll(/https?:\/\/[^\s<>"）)]+/g)).map((match) => match[0]);
-  const ticketUrls = [...inlineUrls, ...event.relatedLinks.map((link) => link.url)].filter((url) =>
-    /eplus|tiget|livepocket|l-tike|ticket|pia/i.test(url),
+  const ticketUrls = [...inlineUrls, ...event.relatedLinks.map((link) => link.url)].filter(
+    (url) =>
+      /eplus|tiget|livepocket|l-tike|ticket|pia/i.test(url) &&
+      !/^https?:\/\/support-qa\.eplus\.jp(?:[/:?#]|$)/i.test(url),
   );
   const price = text.match(/(?:料金|一般指定席|全席指定)[^。]*(?:円|税込)/)?.[0];
   const reception = text.match(/受付期間[:：][^。]+/)?.[0];
